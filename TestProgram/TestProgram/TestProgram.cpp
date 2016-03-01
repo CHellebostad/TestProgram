@@ -10,6 +10,11 @@ using namespace System::Threading;
 using namespace std;
 using namespace cv;
 
+float gyroX;
+float gyroZ;
+float gyroXcorr;
+float gyroZcorr;
+bool first = true;
 
 void static gyroData() {
 	SerialPort port;
@@ -24,15 +29,23 @@ void static gyroData() {
 				b[i] = port.ReadByte();
 			}
 			if (x == 0) {
-				memcpy(&f, b, sizeof(f));
-				cout << "GyroX: " << f;
+				memcpy(&gyroX, b, sizeof(gyroX));
+				if (first) {
+					gyroXcorr = gyroX;
+				}
+				cout << "GyroX: " << gyroX-gyroXcorr;
 			}
 			else if (x == 1) {
-				memcpy(&f, b, sizeof(f));
-				cout << " GyroZ: " << f << endl;
+				memcpy(&gyroZ, b, sizeof(gyroZ));
+				if (first) {
+					gyroZcorr = gyroZ;
+				}
+				cout << " GyroZ: " << gyroZ-gyroZcorr << endl;
 			}
 		}
-
+		if (first) {
+			first = !first;
+		}
 	}
 
 }
