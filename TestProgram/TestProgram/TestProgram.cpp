@@ -5,6 +5,7 @@
 #include <opencv2\opencv.hpp>
 #include <iostream>
 #include <fstream>
+#include <opencv2\videoio.hpp>
 
 using namespace System;
 using namespace System::IO::Ports;
@@ -20,8 +21,7 @@ float gyroXcorr;
 float gyroYcorr;
 float gyroZcorr;
 bool first = true;
-VideoCapture cap;
-VideoWriter writer;
+
 
 void static gyroData() {
 	SerialPort port;
@@ -71,22 +71,22 @@ void static gyroData() {
 
 int main()
 {
+	VideoCapture cap;
 	Mat frame;
 	cap.open(0);
-	writer.open("D:\\Kalibrering.avi",
-		cap.get(CAP_PROP_FOURCC),
-		cap.get(CAP_PROP_FPS),
-		Size(cap.get(CAP_PROP_FRAME_WIDTH),cap.get(CAP_PROP_FRAME_HEIGHT)),true);
+	int frame_width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+	int frame_height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+	VideoWriter video("out.avi", CV_FOURCC('M', 'J', 'P', 'G'), 30, Size(frame_width, frame_height), true);
 	
 	//Thread^ t0 = gcnew Thread(gcnew ThreadStart(gyroData));
 	//t0->Start();
 	while (true) {
-		cap.read(frame);
-		imshow("frame",frame);
-		writer.write(frame);
-		if (waitKey(30) >= 0) break;
+		
+		cap >> frame;
+		video.write(frame);
+		imshow("frame", frame);
+		char c = (char)waitKey(33);
+		if (c == 27) break;
 	}
-	writer.release();
-
 	return 0;
 }
