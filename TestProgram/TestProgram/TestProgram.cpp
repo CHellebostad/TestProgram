@@ -21,6 +21,12 @@ float gyroXcorr;
 float gyroYcorr;
 float gyroZcorr;
 bool first = true;
+VideoCapture cap;
+Mat frame;
+Mat Kintrisic(3, 3, CV_32FC1);
+Mat Kintrisicinvers(3, 3, CV_32FC1);
+
+
 
 
 void static gyroData() {
@@ -60,34 +66,53 @@ void static gyroData() {
 		if (first) {
 			first = !first;
 		}
+		char c = (char)waitKey(33);
+		if (c == 27) break;
 	}
+
 	out.close();
 
 }
 
+void cropimage() {
+	
+	while (true) {
+		cap >> frame;
+		Mat rotx_mat = getRotationMatrix2D(Point(frame.cols / 2, frame.rows / 2),30,1);
+		Mat warp;
+		warpAffine(frame, warp, rotx_mat,Size(frame.rows,frame.cols));
+		//Rect roi(20, 20, 600,380);
+		//Mat roi_frame = warp(roi);
+		imshow("roi_frame", warp);
+		char c = (char)waitKey(33);
+		if (c == 27) break;
+	}
+}
 
+void captureVideo() {
 
+	int frame_width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+	int frame_height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+	VideoWriter video("out.avi", CV_FOURCC('M', 'J', 'P', 'G'), 30, Size(frame_width, frame_height), true);
+	while (true) {
+
+		cap >> frame;
+		video.write(frame);
+		imshow("frame", frame);
+		char c = (char)waitKey(33);
+		if (c == 27) break;
+	}
+}
 
 
 int main()
 {
+	cap.open(0);
 
-	//VideoCapture cap;
-	//Mat frame;
-	//cap.open(0);
-	//int frame_width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
-	//int frame_height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
-	//VideoWriter video("out.avi", CV_FOURCC('M', 'J', 'P', 'G'), 30, Size(frame_width, frame_height), true);
-	//
-	////Thread^ t0 = gcnew Thread(gcnew ThreadStart(gyroData));
-	////t0->Start();
-	//while (true) {
-	//	
-	//	cap >> frame;
-	//	video.write(frame);
-	//	imshow("frame", frame);
-	//	char c = (char)waitKey(33);
-	//	if (c == 27) break;
-	//}
+
+	/*Thread^ t0 = gcnew Thread(gcnew ThreadStart(gyroData));
+	t0->Start();*/
+	Thread^ t1 = gcnew Thread(gcnew ThreadStart(cropimage));
+	t1->Start();
 	return 0;
 }
