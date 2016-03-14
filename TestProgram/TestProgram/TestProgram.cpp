@@ -71,22 +71,23 @@ void static gyroData() {
 
 int main()
 {
-	VideoCapture cap;
-	Mat frame;
-	cap.open(0);
-	int frame_width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
-	int frame_height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
-	VideoWriter video("out.avi", CV_FOURCC('M', 'J', 'P', 'G'), 30, Size(frame_width, frame_height), true);
-	
-	//Thread^ t0 = gcnew Thread(gcnew ThreadStart(gyroData));
-	//t0->Start();
-	while (true) {
-		
-		cap >> frame;
-		video.write(frame);
-		imshow("frame", frame);
-		char c = (char)waitKey(33);
-		if (c == 27) break;
-	}
+
+	//VideoCapture cap;
+	//Mat frame;
+	//cap.open(0);
+	//int frame_width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+	//int frame_height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+	//VideoWriter video("out.avi", CV_FOURCC('M', 'J', 'P', 'G'), 30, Size(frame_width, frame_height), true);
+	//
+	////Thread^ t0 = gcnew Thread(gcnew ThreadStart(gyroData));
+	////t0->Start();
+	//while (true) {
+	//	
+	//	cap >> frame;
+	//	video.write(frame);
+	//	imshow("frame", frame);
+	//	char c = (char)waitKey(33);
+	//	if (c == 27) break;
+	//}
 	return 0;
 }
