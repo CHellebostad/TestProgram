@@ -16,10 +16,9 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON A
 */
 #include "stdafx.h"
 #include "vector.h"
-
 #include <cmath>
 
-Vector::Vector(const Point& p)
+Vector::Vector(const Points& p)
 	: x(p.x), y(p.y), z(p.z)
 {
 }
@@ -86,7 +85,7 @@ Vector Vector::Cross(const Vector& v) const
 	return c;
 }
 
-Vector operator-(Point a, Point b)
+Vector operator-(Points a, Points b)
 {
 	Vector v;
 
@@ -97,12 +96,12 @@ Vector operator-(Point a, Point b)
 	return v;
 }
 
-Point Point::operator+(const Vector& v) const
+Points Points::operator+(const Vector& v) const
 {
-	return Point(x + v.x, y + v.y, z + v.z);
+	return Points(x + v.x, y + v.y, z + v.z);
 }
 
-Point Point::operator-(const Vector& v) const
+Points Points::operator-(const Vector& v) const
 {
-	return Point(x - v.x, y - v.y, z - v.z);
+	return Points(x - v.x, y - v.y, z - v.z);
 }

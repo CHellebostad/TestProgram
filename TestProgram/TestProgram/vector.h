@@ -27,7 +27,7 @@ public:
 		y = Y;
 		z = Z;
 	}
-	Vector(const class Point& p);
+	Vector(const class Points& p);
 
 	float Length() const;
 	float LengthSqr() const;
@@ -65,26 +65,26 @@ inline const Vector operator/(float s, const Vector& v)
 	return Vector(s/v.x, s/v.y, s/v.z);
 }
 
-class Point
+class Points
 {
 public:
-	Point() {}
-	Point(float X, float Y, float Z)
+	Points() {}
+	Points(float X, float Y, float Z)
 	{
 		x = X;
 		y = Y;
 		z = Z;
 	}
 
-	Point(const Vector& v)
+	Points(const Vector& v)
 	{
 		x = v.x;
 		y = v.y;
 		z = v.z;
 	}
 
-	Point operator+(const Vector& v) const;
-	Point operator-(const Vector& v) const;
+	Points operator+(const Vector& v) const;
+	Points operator-(const Vector& v) const;
 
 	float x, y, z;
 };
