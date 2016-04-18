@@ -66,14 +66,43 @@ void cropimage() {
 	}
 }
 
+void removeFishEye() {
+	int numBoards = 0;
+	int numCornersHor=9;
+	int numCornersVer=6;
+	int numSquares = numCornersHor*numCornersVer;
+	Size bord_sz = Size(numCornersHor, numCornersVer);
+	vector<vector<Point3f>> object_points;
+	vector<vector<Point2f>> image_points;
+	vector<Point2f> corners;
+	Mat image;
+	Mat gray_image;
+	Mat intrinsic = Mat(3, 3, CV_32FC1);
+	Mat distCoeffs = Mat(2, 2, CV_32FC1);
+	vector<Mat> rvecs;
+	vector<Mat> tvecs;
+	intrinsic.ptr<float>(0)[0] = 1520.285040118956;
+	intrinsic.ptr<float>(1)[1] = 1501.931438021879;
+	//intrinsic.ptr<float>(0)[2] = 1295.589821181276;
+	//intrinsic.ptr<float>(1)[2] = 944.1007834224537;
+	//intrinsic.ptr<float>(2)[2] = 1;
+
+	frame = imread("img2.jpg");
+	Mat rectifisert;
+	undistort(frame, rectifisert, intrinsic, distCoeffs);
+	imshow("test",rectifisert);
+}
+
+
 
 int main()
 {
+	removeFishEye();
 
-	cap.open(0);
-	Thread^ t0 = gcnew Thread(gcnew ThreadStart(gyroData));
-	t0->Start();
-	Thread^ t1 = gcnew Thread(gcnew ThreadStart(cropimage));
-	t1->Start();
+	//cap.open(0);
+	//Thread^ t0 = gcnew Thread(gcnew ThreadStart(gyroData));
+	//t0->Start();
+	//Thread^ t1 = gcnew Thread(gcnew ThreadStart(cropimage));
+	//t1->Start();
 	return 0;
 }
