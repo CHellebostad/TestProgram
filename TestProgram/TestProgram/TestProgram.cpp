@@ -10,6 +10,7 @@
 #include <ctime>
 #include <cstdio>
 #include <chrono>
+#include <fstream>
 
 using namespace System;
 using namespace System::IO::Ports;
@@ -22,7 +23,6 @@ float deltaGX = 0;
 float stackGX = 0;
 VideoCapture cap;
 Mat frame;
-
 
 void static gyroData() {
 	SerialPort port;
@@ -66,63 +66,106 @@ void cropimage() {
 	}
 }
 
+void getCameraParams() {
+	int numBoards = 10;
+	int numCornersHor=9;
+	int numCornersVer=6;
+	
+	int numSquares = numCornersHor*numCornersVer;
+	Size board_sz = Size(numCornersHor, numCornersVer);
+
+	vector<vector<Point3f>> object_points;
+	vector<vector<Point2f>> image_points;
+	vector<Point2f> corners;
+	int successes = 0;
+	Mat image;
+	Mat imageResized;
+	Mat imageUndestoredResized;
+	Mat gray_image;
+	Mat imageUndistorted;
+	int indx = 35;
+	//cap >> image;
+	image = imread("GOPR0035.jpg");
+	resize(image, imageResized, Size(640, 480));
+	vector<Point3f> obj;
+	for (int j = 0; j < numSquares; j++) {
+		obj.push_back(Point3f(j / numCornersHor, j%numCornersHor, 0.0f));
+	}
+	while (successes < numBoards) {
+		cvtColor(imageResized, gray_image, CV_BGR2GRAY);
+		bool found = findChessboardCorners(imageResized, board_sz, corners, CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_FILTER_QUADS);
+		if (found) {
+			cornerSubPix(gray_image, corners, Size(11, 11), Size(-1, -1), TermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 23, 0.1));
+			drawChessboardCorners(gray_image, board_sz, corners, found);
+		}
+
+		imshow("win1", imageResized);
+		imshow("win2", gray_image);
+		//cap >> image;
+		image = imread("GOPR00" + to_string(indx)+".jpg");
+		resize(image, imageResized, Size(640, 480));
+		cout << "GOPR00"+to_string(indx)+".jpg" << endl;
+		char c = (char)waitKey(33);
+		if (c == 27) break;
+
+		//if (c == ' ' && found != 0) {
+			if (found != 0) {
+			image_points.push_back(corners);
+			object_points.push_back(obj);
+			printf("Snap stored!");
+			successes++;
+			if (successes >= numBoards)
+				break;
+		}
+			if (indx == 47) break;
+			indx++;
+	}
+	Mat intrinsic = Mat(3, 3, CV_32FC1);
+	Mat distCoeffs;
+	vector<Mat> rvecs;
+	vector<Mat> tvecs;
+
+	intrinsic.ptr<float>(0)[0] = 0;// 865.6745;
+	intrinsic.ptr<float>(1)[1] = 0;// 863.1294;
+	calibrateCamera(object_points, image_points, imageResized.size(), intrinsic, distCoeffs, rvecs, tvecs);
+	//cout << intrinsic << endl;
+	//cout << distCoeffs << endl;
+	FileStorage IntrinsicFile("Intrinsic.xml", cv::FileStorage::WRITE);
+	IntrinsicFile <<"Intrinsic"<< intrinsic;
+	IntrinsicFile.release();
+	FileStorage DistCoeffsFile("DistCoeffs.xml", cv::FileStorage::WRITE);
+	DistCoeffsFile << "DistCoeffs" << distCoeffs;
+	DistCoeffsFile.release();
+
+}
+
 void removeFishEye() {
-	//int numBoards = 20;
-	//int numCornersHor=9;
-	//int numCornersVer=6;
-	//int numSquares = numCornersHor*numCornersVer;
-	//Size board_sz = Size(numCornersHor, numCornersVer);
+	Mat image;
+	Mat imageResized;
+	Mat imageUndistorted;
+	Mat intrinsic;
+	Mat distCoeffs;
+	FileStorage IntrinsicStream("Intrinsic.xml",FileStorage::READ);
+	FileStorage DistCoeffsStream("DistCoeffs.xml",FileStorage::READ);
+	IntrinsicStream["Intrinsic"] >> intrinsic;
+	DistCoeffsStream["DistCoeffs"] >> distCoeffs;
+	cout << intrinsic << endl;
+	cout << distCoeffs<<endl;
 
-	//vector<vector<Point3f>> object_points;
-	//vector<vector<Point2f>> image_points;
-	//vector<Point2f> corners;
-	//int successes = 0;
+	while (1) {
+		cap >> image;
+		//image = imread("GOPR0035.jpg");
+		resize(image, imageResized, Size(640, 480));
+		Mat intrinsicOptimal = getOptimalNewCameraMatrix(intrinsic, distCoeffs, Size(640, 480), 1, Size(640, 480));
 
-	//Mat gray_image;
-	
-	
+		undistort(imageResized, imageUndistorted, intrinsicOptimal, distCoeffs);
+		//cout << distCoeffs << endl;
+		//cout << intrinsic<<endl;
+		imshow("win", imageResized);
+		imshow("win2", imageUndistorted);
+		waitKey(1);
 
-	//vector<Point3f> obj;
-	//for (int j = 0; j < numSquares; j++) {
-	//	obj.push_back(Point3f(j / numCornersHor, j%numCornersHor, 0.0f));
-	//}
-	//while (successes < numBoards) {
-	//	cvtColor(image, gray_image, CV_BGR2GRAY);
-	//	bool found = findChessboardCorners(image, board_sz, corners, CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_FILTER_QUADS);
-	//	if (found) {
-	//		cornerSubPix(gray_image, corners, Size(11, 11), Size(-1, -1), TermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.1));
-	//		drawChessboardCorners(gray_image, board_sz, corners, found);
-	//	}
-
-	//	imshow("win1", image);
-	//	imshow("win2", gray_image);
-	//	cap >> image;
-	//	char c = (char)waitKey(33);
-	//	if (c == 27) break;
-
-	//	if (c == ' ' && found != 0) {
-	//		image_points.push_back(corners);
-	//		object_points.push_back(obj);
-	//		printf("Snap stored!");
-	//		successes++;
-	//		if (successes >= numBoards)
-	//			break;
-	//	}
-	//}
-	//Mat intrinsic = Mat(3, 3, CV_32FC1);
-	//Mat distCoeffs = Mat(2, 2, CV_32FC1);
-	//vector<Mat> rvecs;
-	//vector<Mat> tvecs;
-	//intrinsic.ptr<float>(0)[0] = 1520.285040118956;
-	//intrinsic.ptr<float>(1)[1] = 1501.931438021879;
-	//intrinsic.ptr<float>(0)[2] = 1295.589821181276;
-	//intrinsic.ptr<float>(1)[2] = 944.1007834224537;
-	//intrinsic.ptr<float>(2)[2] = 1;
-
-	//frame = imread("img2.jpg");
-	//Mat rectifisert;
-	//undistort(frame, rectifisert, intrinsic, distCoeffs);
-	//imshow("test",rectifisert);
+	}
 }
 
 
@@ -130,16 +173,10 @@ void removeFishEye() {
 int main()
 {
 	cap.open(0);
-	Mat image ;
 
-	while (true) {
-		//cap >> image;
-		//namedWindow("test", WINDOW_AUTOSIZE);
-		//imshow("test", image);
-		//if (waitKey(30) >= 0) break;
-	}
-	
-	//removeFishEye();
+	Thread^ t0 = gcnew Thread(gcnew ThreadStart(removeFishEye));
+	t0->Start();
+	//getCameraParams();
 
 	//Thread^ t0 = gcnew Thread(gcnew ThreadStart(gyroData));
 	//t0->Start();
